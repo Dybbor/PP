@@ -5,6 +5,14 @@
 
 #define M_PI 3.14159265358979323846
 
+double* Kernel() 
+{
+	double kernel[9] = { 1,2,1,2,4,2,1,2,1 };
+	//normirovvka intensity
+	for (int i = 0; i < 9; ++i)
+		kernel[i] /= 16;
+	return  kernel;
+}
 double* createKernel(double* kernel, double sigma)
 {
 	double sum = 0;
@@ -22,6 +30,22 @@ double* createKernel(double* kernel, double sigma)
 		}
 	}
 	return kernel;
+}
+void PrintData(cv::Mat image) 
+{
+	//for (int i = 0; i < image.rows; ++i) 
+	//{
+	//	for (int j = 0; j < image.cols; j++)
+	//		std::cout << static_cast<int>(image.at<uchar>(i,j)) <<"  ";
+	//	std::cout<<std::endl;
+	//}
+	std::cout << std::endl;
+	for (int i = 0; i < image.rows*image.cols; ++i) 
+	{
+		if (i % image.cols == 0 && i != 0)
+			std::cout << std::endl;
+		std::cout << static_cast<int>(image.data[i]) << "  ";
+	}
 }
 
 cv::Mat duplicateBorder(cv::Mat image)
@@ -54,7 +78,8 @@ int main(int argc, char** argv)
 {
 	
 	std::string path_to_image;
-	cv::Mat original, filter;
+	cv::Mat original, duplicate, filter;
+	double* kernel = Kernel();
 	std::cout << argc << " " << argv[0] << " "  << std::endl;
 	if (argc < 2)
 		path_to_image += "../../Image/test.png";
@@ -73,10 +98,14 @@ int main(int argc, char** argv)
 	}
 	namedWindow("Original",cv::WINDOW_NORMAL);
 	namedWindow("Filter",cv::WINDOW_NORMAL);
-	filter = duplicateBorder(original);
+
+	PrintData(original);
+	duplicate = duplicateBorder(original);
+	//Linear alghorithm
+	int tmp = 0;
+	
 	cv::imshow("Original",original);
 	cv::imshow("Filter", filter);
-
 	cv::waitKey();
 	return 0;
 }
