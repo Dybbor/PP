@@ -48,6 +48,15 @@ void PrintData(cv::Mat image)
 	}
 }
 
+int Clamp(int num)
+{
+	if (num > 255)
+		return 255;
+	if (num < 0)
+		return 0;
+	return num;
+	
+}
 cv::Mat duplicateBorder(cv::Mat image)
 {
 
@@ -78,8 +87,12 @@ int main(int argc, char** argv)
 {
 	
 	std::string path_to_image;
-	cv::Mat original, duplicate, filter;
-	double* kernel = Kernel();
+	cv::Mat original, duplicate;
+	double kernel[3][3] = { {1,2,1},{ 2,4,2},{1,2,1} };
+	for (int i = 0; i < 3; ++i)
+		for (int j = 0; j < 3; ++j)
+			kernel[i][j] /= 16;
+	//double kernel[3][3] = { {1 / 16, 2 / 16, 1 / 16},{ 2 / 16, 4 / 16, 2 / 16},{1 / 16, 2 / 16, 1 / 16 } };
 	std::cout << argc << " " << argv[0] << " "  << std::endl;
 	if (argc < 2)
 		path_to_image += "../../Image/test.png";
@@ -96,15 +109,37 @@ int main(int argc, char** argv)
 		cv::cvtColor(original, original, cv::COLOR_BGR2GRAY);
 		std::cout << "image to grey color" << std::endl;
 	}
+	cv::Mat  filter(original.rows, original.cols, CV_8UC1);
+	for (int i = 0; i < filter.rows; ++i)
+		for (int j = 0; j < filter.rows; ++j)
+			filter.at<uchar>(i, j) = 0;
+
+	/*for (int i = 0; i < 3; ++i)
+		for (int j = 0; j < 3; ++j)
+			std::cout << kernel[i][j] << std::endl;*/
+	
 	namedWindow("Original",cv::WINDOW_NORMAL);
+	namedWindow("Duplicate", cv::WINDOW_NORMAL);
 	namedWindow("Filter",cv::WINDOW_NORMAL);
 
-	PrintData(original);
+	//PrintData(original);
 	duplicate = duplicateBorder(original);
 	//Linear alghorithm
-	int tmp = 0;
-	
+	for (int y = 1; y < duplicate.rows - 1; ++y)
+		for (int x = 1; x < duplicate.cols - 1; ++x)
+		{
+			int tmp = 0;
+			for (int i = -1; i <= 1; ++i)
+				for (int j = -1; j <= 1; ++j)
+				{
+					tmp +=(int)duplicate.at<uchar>(x + i, y + j) * kernel[1 + i][1 + j];
+					std::cout << x + i << '\t' << y + j << '\t'<<tmp<<std::endl;
+
+				}
+			filter.at<uchar>(x-1, y-1) = (uchar)Clamp(tmp);
+		}
 	cv::imshow("Original",original);
+	cv::imshow("Duplicate",duplicate);
 	cv::imshow("Filter", filter);
 	cv::waitKey();
 	return 0;
