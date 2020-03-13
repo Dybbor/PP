@@ -47,12 +47,23 @@ void PrintData(cv::Mat image)
 		std::cout << static_cast<int>(image.data[i]) << "  ";
 	}
 }
+void PrintMat(cv::Mat image)
+{
+	for (int i = 0; i < image.rows; i++)
+	{
+		for (int j = 0; j < image.cols; j++)
+		{
+			std::cout <<(int) image.at<uchar>(i, j) << "  ";
+		}
+		std::cout << std::endl;
+	}
+}
 
 int Clamp(int num)
 {
 	if (num > 255)
 		return 255;
-	if (num < 0)
+	else if (num < 0)
 		return 0;
 	return num;
 	
@@ -95,7 +106,7 @@ int main(int argc, char** argv)
 	//double kernel[3][3] = { {1 / 16, 2 / 16, 1 / 16},{ 2 / 16, 4 / 16, 2 / 16},{1 / 16, 2 / 16, 1 / 16 } };
 	std::cout << argc << " " << argv[0] << " "  << std::endl;
 	if (argc < 2)
-		path_to_image += "../../Image/test.png";
+		path_to_image += "../../Image/test1.jpg";
 	else
 		path_to_image += argv[1];
 	original = cv::imread(path_to_image);
@@ -113,16 +124,9 @@ int main(int argc, char** argv)
 	for (int i = 0; i < filter.rows; ++i)
 		for (int j = 0; j < filter.rows; ++j)
 			filter.at<uchar>(i, j) = 0;
-
-	/*for (int i = 0; i < 3; ++i)
-		for (int j = 0; j < 3; ++j)
-			std::cout << kernel[i][j] << std::endl;*/
-	
 	namedWindow("Original",cv::WINDOW_NORMAL);
 	namedWindow("Duplicate", cv::WINDOW_NORMAL);
 	namedWindow("Filter",cv::WINDOW_NORMAL);
-
-	//PrintData(original);
 	duplicate = duplicateBorder(original);
 	//Linear alghorithm
 	for (int y = 1; y < duplicate.rows - 1; ++y)
@@ -132,11 +136,9 @@ int main(int argc, char** argv)
 			for (int i = -1; i <= 1; ++i)
 				for (int j = -1; j <= 1; ++j)
 				{
-					tmp +=(int)duplicate.at<uchar>(x + i, y + j) * kernel[1 + i][1 + j];
-					std::cout << x + i << '\t' << y + j << '\t'<<tmp<<std::endl;
-
+					tmp +=((int)duplicate.at<uchar>(y + i, x + i)) * kernel[1 + i][1 + j];
 				}
-			filter.at<uchar>(x-1, y-1) = (uchar)Clamp(tmp);
+			filter.at<uchar>(y-1, x-1) = (uchar)Clamp(tmp);
 		}
 	cv::imshow("Original",original);
 	cv::imshow("Duplicate",duplicate);
